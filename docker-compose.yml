@@ -1,0 +1,44 @@
+services:
+  ichgram:
+    build:
+      context: ./BE
+    container_name: ichgram
+    ports:
+      - "3333:3333"
+    depends_on:
+      - mongodb
+    # environment:
+    #   MONGO_URI: ${MONGO_URI}
+    #   MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+    #   MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    #   MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - ./BE/.env:/app/.env
+
+  frontichgram:
+    build:
+      context: ./FE
+    container_name: frontichgram
+    ports:
+      - "4173:4173"
+    depends_on:
+      - ichgram
+
+  mongodb:
+    container_name: mongo-database
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    command: --auth --bind_ip 0.0.0.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 1234
+      #MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    env_file:
+      - ./BE/.env
+    volumes:
+      - ./BE/db-data/db:/data/db
+
+volumes:
+  mongo-data:
