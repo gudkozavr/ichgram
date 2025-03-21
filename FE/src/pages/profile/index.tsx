@@ -369,14 +369,14 @@ const Profile = () => {
               <>
                 <Button
                   variant="secondary"
-                  className="p-1 text-black bg-gray-300 hover:bg-gray-300"
+                  className="w-[169px] h-[32px] bg-[#EFEFEF] text-black hover:bg-[#EFEFEF] p-0 text-[14px] font-semibold rounded-[8px]"
                   onClick={() => navigate("/profile-info")}
                 >
                   Edit Profile
                 </Button>
                 <Button
                   variant="secondary"
-                  className="p-1 text-black bg-gray-300 hover:bg-gray-300"
+                  className="w-[169px] h-[32px] bg-[#FF4D4D] text-white flex items-center justify-center hover:bg-[#E04343] p-0 text-[14px] font-semibold rounded-[8px] !bg-[#FF4D4D] !text-white"
                   onClick={() => {
                     localStorage.removeItem("token");
                     localStorage.removeItem("username");
@@ -389,7 +389,13 @@ const Profile = () => {
             ) : (
               <Button
                 variant="secondary"
-                className="pb-[3px] p-1b text-zinc-950"
+                className={`w-[132px] h-[32px] font-semibold rounded-[8px] flex items-center justify-center transition-all duration-300 
+    ${
+      isFollowing
+        ? "bg-white border border-black text-black"
+        : "bg-[#0095F6] text-white"
+    } 
+    hover:${isFollowing ? "bg-gray-100" : "bg-[#007ACE]"}`}
                 onClick={handleFollowToggle}
               >
                 {isFollowing ? "Unfollow" : "Follow"}
@@ -441,6 +447,7 @@ const Profile = () => {
               postId={post._id}
               userId={userId}
               likes={post.likes}
+              compactMode={true}
             />
           </div>
         ))}
@@ -458,6 +465,7 @@ const Profile = () => {
           newComment={newComment}
           setNewComment={setNewComment}
           toggleLikeComment={toggleLikeComment}
+          userId={userId}
         />
       )}
     </div>

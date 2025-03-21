@@ -1,42 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import MediaSlider from '../../components/post';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import MediaSlider from "../../components/post";
 
-import {jwtDecode} from 'jwt-decode';
-import { IPost } from '../home';
-import { PostDetails } from '../../components/postModal';
-import { Comment } from '../../components/postModal';
-import PostModal from '../../components/postModal';
+import { jwtDecode } from "jwt-decode";
+import { IPost } from "../home";
+import { PostDetails } from "../../components/postModal";
+import { Comment } from "../../components/postModal";
+import PostModal from "../../components/postModal";
 const Explore: React.FC = () => {
- 
   const [posts, setPosts] = useState<IPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
- const [selectedPost, setSelectedPost] = useState<PostDetails | null>(null);
+  const [selectedPost, setSelectedPost] = useState<PostDetails | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openCommentsModal, setOpenCommentsModal] = useState<boolean>(false);
-  const [newComment, setNewComment] = useState<string>('');
+  const [newComment, setNewComment] = useState<string>("");
 
-
-  
   const getUserIdFromToken = (): string => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
         return decoded.id;
       } catch (error) {
-        console.error('Error decoding token:', error);
-        return '';
+        console.error("Error decoding token:", error);
+        return "";
       }
     }
-    return '';
+    return "";
   };
 
   const userId = getUserIdFromToken();
   console.log(userId);
-
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -47,7 +43,7 @@ const Explore: React.FC = () => {
         `${import.meta.env.VITE_HOST_NAME}/api/post/all-users-posts`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -56,9 +52,9 @@ const Explore: React.FC = () => {
       const formattedPosts: IPost[] = users.flatMap((user: any) =>
         user.posts.map((post: any) => ({
           _id: post._id,
-          content: post.content || '',
+          content: post.content || "",
           imageUrls: post.imageUrls || [],
-          videoUrl: post.videoUrl || '',
+          videoUrl: post.videoUrl || "",
           createdAt: post.createdAt,
           likesCount: post.likesCount,
           likes: post.likes || [],
@@ -71,7 +67,7 @@ const Explore: React.FC = () => {
 
       setPosts(formattedPosts);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при загрузке постов');
+      setError(err.response?.data?.message || "Ошибка при загрузке постов");
     } finally {
       setLoading(false);
     }
@@ -81,138 +77,136 @@ const Explore: React.FC = () => {
     fetchPosts();
   }, []);
 
+  const fetchPostDetails = async (postId: string) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_HOST_NAME}/api/post/${postId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
+      const post = response.data.data;
 
-const fetchPostDetails = async (postId: string) => {
-  try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_HOST_NAME}/api/post/${postId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }
-    );
+      const filteredComments = post.comments.filter(
+        (comment: Comment) =>
+          comment.content !== "No content" &&
+          comment.username !== "Anonymous" &&
+          comment.avatar !== "default-avatar.png"
+      );
 
-    const post = response.data.data;
+      const updatedComments = filteredComments.map((comment: Comment) => ({
+        ...comment,
+        isLiked: comment.likes.includes(userId),
+      }));
 
-    const filteredComments = post.comments.filter(
-      (comment: Comment) =>
-        comment.content !== 'No content' && 
-        comment.username !== 'Anonymous' &&
-        comment.avatar !== 'default-avatar.png' 
-    );
+      setSelectedPost({
+        ...post,
+        comments: updatedComments,
+      });
+      setOpenModal(true);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Ошибка при загрузке поста");
+    }
+  };
 
-   
-    const updatedComments = filteredComments.map((comment: Comment) => ({
-      ...comment,
-      isLiked: comment.likes.includes(userId), 
-    }));
+  const handleOpenModal = (postId: string) => {
+    fetchPostDetails(postId);
+  };
 
-    
-    setSelectedPost({
-      ...post,
-      comments: updatedComments, 
-    });
-    setOpenModal(true);
-  } catch (err: any) {
-    setError(err.response?.data?.message || 'Ошибка при загрузке поста');
-  }
-};
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedPost(null);
+  };
 
-const handleOpenModal = (postId: string) => {
-  fetchPostDetails(postId);
-};
+  const handleOpenCommentsModal = () => {
+    setOpenCommentsModal(true);
+  };
 
-const handleCloseModal = () => {
-  setOpenModal(false);
-  setSelectedPost(null);
-};
+  const handleCloseCommentsModal = () => {
+    setOpenCommentsModal(false);
+  };
 
-const handleOpenCommentsModal = () => {
-  setOpenCommentsModal(true);
-};
+  const handleCommentSubmit = async () => {
+    if (!newComment.trim() || !selectedPost) return;
 
-const handleCloseCommentsModal = () => {
-  setOpenCommentsModal(false);
-};
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_HOST_NAME}/api/post/${
+          selectedPost._id
+        }/comment`,
+        { content: newComment },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-const handleCommentSubmit = async () => {
-  if (!newComment.trim() || !selectedPost) return;
+      // Обновляем комментарии для текущего поста
+      const updatedComment = response.data.data;
+      setSelectedPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              comments: [...(prev.comments || []), updatedComment],
+              commentsCount: prev.commentsCount + 1,
+            }
+          : null
+      );
 
-  try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_HOST_NAME}/api/post/${selectedPost._id}/comment`,
-      { content: newComment },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }
-    );
+      // Обновляем комментарии на главной странице
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === selectedPost._id
+            ? { ...post, comments: [...(post.comments || []), updatedComment] }
+            : post
+        )
+      );
 
-    // Обновляем комментарии для текущего поста
-    const updatedComment = response.data.data;
-    setSelectedPost((prev) =>
-      prev
-        ? {
-            ...prev,
-            comments: [...(prev.comments || []), updatedComment],
-            commentsCount: prev.commentsCount + 1,
-          }
-        : null
-    );
+      setNewComment("");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Ошибка при добавлении комментария"
+      );
+    }
+  };
 
-    // Обновляем комментарии на главной странице
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post._id === selectedPost._id
-          ? { ...post, comments: [...(post.comments || []), updatedComment] }
-          : post
-      )
-    );
+  const toggleLikeComment = async (commentId: string) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_HOST_NAME}/api/comment/${commentId}/togglelike`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
 
-    setNewComment('');
-  } catch (err: any) {
-    setError(
-      err.response?.data?.message || 'Ошибка при добавлении комментария'
-    );
-  }
-};
+      const updatedComment = response.data.data;
 
-const toggleLikeComment = async (commentId: string) => {
-  try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_HOST_NAME}/api/comment/${commentId}/togglelike`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }
-    );
+      setSelectedPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              comments: prev.comments.map((comment) =>
+                comment._id === commentId
+                  ? {
+                      ...comment,
+                      likes: updatedComment.likes,
+                      isLiked: updatedComment.likes.includes(userId),
+                    }
+                  : comment
+              ),
+            }
+          : null
+      );
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Ошибка при лайке комментария");
+    }
+  };
 
-    const updatedComment = response.data.data;
-
-    setSelectedPost((prev) =>
-      prev
-        ? {
-            ...prev,
-            comments: prev.comments.map((comment) =>
-              comment._id === commentId
-                ? {
-                    ...comment,
-                    likes: updatedComment.likes,
-                    isLiked: updatedComment.likes.includes(userId),
-                  }
-                : comment
-            ),
-          }
-        : null
-    );
-  } catch (err: any) {
-    setError(err.response?.data?.message || 'Ошибка при лайке комментария');
-  }
-};
-  
   if (loading) {
     return <div>Loading..</div>;
   }
@@ -234,7 +228,7 @@ const toggleLikeComment = async (commentId: string) => {
         >
           <MediaSlider
             media={
-              post.imageUrls.length > 0 ? post.imageUrls : [post.videoUrl || '']
+              post.imageUrls.length > 0 ? post.imageUrls : [post.videoUrl || ""]
             }
             avatar={post.user.avatar || null}
             onClick={() => handleOpenModal(post._id)}
@@ -243,7 +237,7 @@ const toggleLikeComment = async (commentId: string) => {
             likecount={post.likesCount}
             description={post.content}
             postId={post._id}
-            userId={userId || ''}
+            userId={userId || ""}
             likes={post.likes}
           />
         </div>
@@ -261,6 +255,7 @@ const toggleLikeComment = async (commentId: string) => {
           newComment={newComment}
           setNewComment={setNewComment}
           toggleLikeComment={toggleLikeComment}
+          userId={userId}
         />
       )}
     </div>

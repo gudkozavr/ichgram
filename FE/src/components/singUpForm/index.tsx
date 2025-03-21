@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import Input from "../../ui/input";
 import Button from "../../ui/button";
 import { Link, useNavigate } from "react-router-dom";
-// import inStackLogo from '../../assets/icons/InStack.svg';
+import inStackLogo from "../../assets/icons/logo_ichgram.svg";
 import axios from "axios";
 interface SignUpFormData {
   email: string;
@@ -24,9 +24,8 @@ const SignUpForm = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_HOST_NAME}/api/auth/register`,
         data
-      ); // Замените на ваш реальный URL для регистрации
+      );
       if (response.status === 201) {
-        // После успешной регистрации перенаправляем на страницу логина
         navigate("/login");
       }
     } catch (error) {
@@ -34,12 +33,11 @@ const SignUpForm = () => {
     }
   };
 
-  // Регулярное выражение для проверки email
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   return (
     <div className="w-[350px] bg-white border border-gray-300 flex flex-col items-center p-6">
-      <img src="{}" alt="Logo" className="w-48 mb-4" />
+      <img src={inStackLogo} alt="Logo" className="w-48 mb-4" />
 
       <h3 className="mb-4 text-lg text-center">
         Sign up to see photos and videos from your friends.
@@ -125,13 +123,11 @@ const SignUpForm = () => {
           </span>
         )}
 
-        {/* Кнопка регистрации */}
         <Button type="submit" variant="primary" className="w-full mt-2">
           Sign Up
         </Button>
       </form>
 
-      {/* Дополнительная информация */}
       <div className="mt-4 text-xs text-center text-gray-600">
         <p>
           People who use our service may have uploaded your contact information
@@ -155,7 +151,7 @@ const SignUpForm = () => {
           </Link>
         </p>
       </div>
-      {/* Раздел для входа */}
+
       <div className="w-full pt-3 mt-4 text-center border-t">
         <span className="text-sm text-gray-600">
           Have an account?{" "}

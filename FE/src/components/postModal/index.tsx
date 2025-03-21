@@ -5,6 +5,7 @@ import like from "../../assets/icons/like.svg";
 import likedFot from "../../assets/icons/liked.svg";
 import comentImg from "../../assets/icons/dialog.svg";
 import { useSwipeable } from "react-swipeable";
+
 export interface UserDetails {
   _id: string;
   username: string;
@@ -86,6 +87,7 @@ interface PostModalProps {
   setNewComment: (comment: string) => void;
   // likeComment: (commentId: string) => void;
   toggleLikeComment: (commentId: string) => void;
+  userId: string;
 }
 
 // Компонент PostModal с типизацией пропсов
@@ -100,6 +102,7 @@ const PostModal: React.FC<PostModalProps> = ({
   newComment,
   setNewComment,
   toggleLikeComment,
+  userId,
 }) => {
   const username = localStorage.getItem("username");
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -209,18 +212,17 @@ const PostModal: React.FC<PostModalProps> = ({
                   </h1>
                   <span
                     onClick={() => {
-                      if (selectedPost.userDetails?.username === username) {
+                      if (selectedPost?.userDetails?._id === userId) {
                         setDeleteConfirmationModal(true);
                       }
                     }}
-                    className={`mb-3 ml-auto text-lg font-medium text-right text-gray-800 transition-transform duration-300 cursor-pointer hover:text-slate-950 hover:scale-105 mr-3${
-                      selectedPost.userDetails?.username === username
-                        ? ""
-                        : "hidden"
+                    className={`mb-3 ml-auto text-lg font-medium text-right text-gray-800 transition-transform duration-300 cursor-pointer hover:text-slate-950 hover:scale-105 ${
+                      selectedPost?.userDetails?._id === userId ? "" : "hidden"
                     }`}
                   >
-                    delete post
+                    Delete Post
                   </span>
+
                   {/* Дотсы */}
                 </div>
 

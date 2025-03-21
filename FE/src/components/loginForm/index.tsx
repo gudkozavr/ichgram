@@ -32,7 +32,7 @@ const LoginForm = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_HOST_NAME}/api/auth/login`,
         {
-          emailOrUsername, // Передаем только одно поле
+          emailOrUsername,
           password,
         }
       );
